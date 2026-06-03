@@ -248,13 +248,18 @@ func (m *Manager) Cancel(id int) bool {
 	defer m.mu.Unlock()
 
 	for _, item := range m.items {
-		if item.ID == id && (item.Status == StatusQueued || item.Status == StatusPreparing || item.Status == StatusDownloading) {
-			if item.cancel != nil {
-				item.cancel()
+		if item.ID == id {
+			item.mu.Lock()
+			canCancel := item.Status == StatusQueued || item.Status == StatusPreparing || item.Status == StatusDownloading
+			if canCancel {
+				if item.cancel != nil {
+					item.cancel()
+				}
+				item.Status = StatusCancelled
+				m.persistStatus(item.ID, item.Status)
 			}
-			item.Status = StatusCancelled
-			m.persistStatus(item.ID, item.Status)
-			return true
+			item.mu.Unlock()
+			return canCancel
 		}
 	}
 	return false
@@ -264,9 +269,14 @@ func (m *Manager) Retry(id int) bool {
 	m.mu.Lock()
 	var item *Item
 	for _, it := range m.items {
-		if it.ID == id && it.Status == StatusFailed {
-			item = it
-			break
+		if it.ID == id {
+			it.mu.Lock()
+			if it.Status == StatusFailed {
+				item = it
+				it.mu.Unlock()
+				break
+			}
+			it.mu.Unlock()
 		}
 	}
 	m.mu.Unlock()
@@ -342,9 +352,9 @@ func (m *Manager) worker() {
 }
 
 func (m *Manager) process(item *Item) {
-	m.mu.Lock()
+	item.mu.Lock()
 	if item.Status != StatusQueued {
-		m.mu.Unlock()
+		item.mu.Unlock()
 		return
 	}
 	item.Status = StatusPreparing
@@ -353,7 +363,7 @@ func (m *Manager) process(item *Item) {
 	item.cancel = cancel
 	now := time.Now()
 	item.StartedAt = &now
-	m.mu.Unlock()
+	item.mu.Unlock()
 
 	item.mu.Lock()
 	item.Status = StatusDownloading
