@@ -7,38 +7,55 @@ before:
     - go mod tidy
 
 builds:
-  - main: ./cmd/mint
+  - id: mint
+    main: ./cmd/mint
     binary: mint
+
+    env:
+      - CGO_ENABLED=0
+
     goos:
       - linux
       - darwin
       - windows
+
     goarch:
       - amd64
       - arm64
+
     goamd64:
       - v1
+
     ignore:
       - goos: windows
         goarch: arm64
 
 archives:
-  - formats: [tar.gz]
-    name_template: >-
-      {{ .ProjectName }}_
-      {{- title .Os }}_
-      {{- if eq .Arch "amd64" }}x86_64
-      {{- else if eq .Arch "arm64" }}arm64
-      {{- else }}{{ .Arch }}{{ end }}
+  - id: default
+
+    formats:
+      - tar.gz
+
     format_overrides:
       - goos: windows
-        formats: [zip]
+        formats:
+          - zip
+
+    name_template: >-
+      {{ .ProjectName }}_
+      {{ .Version }}_
+      {{ .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "arm64" }}arm64
+      {{- else }}{{ .Arch }}
+      {{- end }}
+
     files:
       - README.md
       - LICENSE
 
 checksum:
-  name_template: "checksums.txt"
+  name_template: checksums.txt
 
 snapshot:
   version_template: "{{ .Version }}-SNAPSHOT-{{ .ShortCommit }}"
@@ -51,3 +68,4 @@ changelog:
       - "^test:"
       - "^ci:"
       - "^chore:"
+      
