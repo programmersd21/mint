@@ -13,7 +13,6 @@ linters:
       enable-all: true
       disable:
         - fieldalignment
-
     staticcheck:
       checks:
         - all
@@ -44,4 +43,3 @@ formatters:
       - third_party$
       - builtin$
       - examples$
-      
