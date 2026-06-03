@@ -2,9 +2,6 @@ version: 2
 
 project_name: mint
 
-env:
-  - GO111MODULE=on
-
 before:
   hooks:
     - go mod tidy
@@ -12,10 +9,6 @@ before:
 builds:
   - main: ./cmd/mint
     binary: mint
-    ldflags:
-      - -X main.version={{ .Version }}
-      - -X main.commit={{ .ShortCommit }}
-      - -X main.buildDate={{ .Date }}
     goos:
       - linux
       - darwin
@@ -23,6 +16,8 @@ builds:
     goarch:
       - amd64
       - arm64
+    goamd64:
+      - v1
     ignore:
       - goos: windows
         goarch: arm64
@@ -46,7 +41,7 @@ checksum:
   name_template: "checksums.txt"
 
 snapshot:
-  name_template: "{{ .Version }}-SNAPSHOT-{{ .ShortCommit }}"
+  version_template: "{{ .Version }}-SNAPSHOT-{{ .ShortCommit }}"
 
 changelog:
   sort: asc
