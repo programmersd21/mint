@@ -2,6 +2,7 @@ name: Release
 
 on:
   workflow_dispatch:
+
   push:
     branches:
       - main
@@ -16,11 +17,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-go@v5
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
           cache: true
@@ -28,28 +31,32 @@ jobs:
       - name: Read version
         id: version
         run: |
-          VERSION=$(cat VERSION | tr -d '\r\n')
+          VERSION=$(tr -d '\r\n' < VERSION)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Create tag
+      - name: Create and push tag
         run: |
           TAG="v${{ steps.version.outputs.version }}"
 
           if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag already exists"
-            exit 0
+            echo "Tag $TAG already exists"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+            git tag -a "$TAG" -m "Release $TAG"
+            git push origin "$TAG"
           fi
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git tag -a "$TAG" -m "Release $TAG"
-          git push origin "$TAG"
+      - name: Fetch tags
+        run: git fetch --force --tags
 
       - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git fetch --tags
-          goreleaser release --clean
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          args: release --clean
           
