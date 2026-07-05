@@ -9,6 +9,7 @@
 [![Release](https://img.shields.io/github/actions/workflow/status/programmersd21/mint/release.yml?style=for-the-badge&label=Release&logo=githubactions&logoColor=white&color=FF7043)](https://github.com/programmersd21/mint/actions/workflows/release.yml)
 [![Stars](https://img.shields.io/github/stars/programmersd21/mint?style=for-the-badge&logo=github&logoColor=white&color=FFC107)](https://github.com/programmersd21/mint)
 [![Issues](https://img.shields.io/github/issues/programmersd21/mint?style=for-the-badge&logo=github&logoColor=white&color=FF5252)](https://github.com/programmersd21/mint/issues)
+
 a terminal-native client for modrinth.
 
 browse, explore, download, and analyze content from modrinth - all from your terminal.
